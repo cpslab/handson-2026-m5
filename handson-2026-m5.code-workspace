@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"name": "handson-2026-m5",
+			"path": "."
+		},
+		{
+			"name": "child (PlatformIO)",
+			"path": "child"
+		}
+	],
+	"settings": {
+		"git.openRepositoryInParentFolders": "always"
+	}
+}
