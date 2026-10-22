@@ -74,9 +74,11 @@
 
 | 用途 | パス | Node-RED のノード |
 |---|---|---|
-| 表示画面の HTML | `/balloon` | `http in` → `http response` |
+| 表示画面の HTML | `/balloon/`（末尾の `/` が必要） | `http in` → `http response` |
+| CSS・JS など | `/balloon/<ファイル名>` | `http in` → `http response` |
 | WebSocket | `/ws/balloon` | `websocket in` / `websocket out`（同じパスを共有） |
 
+- HTML は CSS・JS を相対パスで読み込むため、`/balloon`（`/` なし）で開くと読み込めない。詳しくは [web/README.md](web/README.md) を参照。
 - メッセージはすべて JSON で、`type` で種類を区別する。
 
 #### Node-RED → ブラウザ: `state`（ゲームの状態）
