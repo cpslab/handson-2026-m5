@@ -1,0 +1,157 @@
+/* 風船ゲームの表示画面
+   プロジェクターに映すので、暗い背景・大きめの文字にする */
+
+:root {
+  --bg: #14161c;
+  --panel: #1f232c;
+  --line: #333a47;
+  --text: #f2f4f8;
+  --muted: #9aa3b2;
+  --accent: #ff6699;
+  --ok: #4cd08a;
+  --warn: #ffcc33;
+  --ng: #ff5a5a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+}
+
+/* ===== 上部 ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+}
+
+.phase {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+.timer {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.conn {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  border: 1px solid currentColor;
+}
+
+.conn[data-status="open"] { color: var(--ok); }
+.conn[data-status="mock"] { color: var(--warn); }
+.conn[data-status="connecting"],
+.conn[data-status="closed"] { color: var(--ng); }
+
+/* ===== 中央 ===== */
+.stage {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
+.debug-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.debug-table th,
+.debug-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.debug-table th {
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.debug-table tr.offline {
+  opacity: 0.4;
+}
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.bar {
+  display: inline-block;
+  width: 160px;
+  height: 10px;
+  margin-right: 8px;
+  background: var(--line);
+  border-radius: 5px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+}
+
+.empty {
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ===== 下部 ===== */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+
+.controls button {
+  min-width: 140px;
+  padding: 10px 24px;
+  font-size: 18px;
+  color: var(--text);
+  background: var(--line);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+#start-btn:not(:disabled) {
+  background: var(--accent);
+}
