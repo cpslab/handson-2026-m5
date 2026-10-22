@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>風船ゲーム</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ===== 上部: ゲームの段階・残り時間・接続状態 ===== -->
+  <header class="topbar">
+    <h1 class="title">風船ゲーム</h1>
+    <div class="phase" id="phase">-</div>
+    <div class="timer" id="timer"></div>
+    <div class="conn" id="conn" data-status="connecting">接続中…</div>
+  </header>
+
+  <!-- ===== 中央: 参加者の表示 =====
+       今は動作確認用の一覧表。風船の表示は feature/web-balloon-grid で作る -->
+  <main class="stage">
+    <table class="debug-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ID</th>
+          <th>膨らみ (level)</th>
+          <th>圧力 p [kPa]</th>
+          <th>破裂</th>
+          <th>順位</th>
+          <th>通信</th>
+        </tr>
+      </thead>
+      <tbody id="players"></tbody>
+    </table>
+    <p class="empty" id="empty">接続している子機はありません</p>
+  </main>
+
+  <!-- ===== 下部: 講師の操作ボタン ===== -->
+  <footer class="controls">
+    <button type="button" id="start-btn">スタート</button>
+    <button type="button" id="reset-btn">リセット</button>
+  </footer>
+
+  <script src="mock.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
