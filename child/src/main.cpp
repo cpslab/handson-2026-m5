@@ -9,6 +9,9 @@ int sensorPin;
 // 吹いていないときの圧力（ゼロ点）
 float zeroKPa = 0;
 
+// バーがいっぱいになる圧力（kPa）
+const float MAX_KPA = 10;
+
 // ===== 圧力センサーの値を読む（単位: kPa） =====
 float readKPa() {
   // ノイズを減らすため、10回読んで平均する
@@ -34,9 +37,14 @@ void setup() {
   // PORT.B のピン番号を調べる
   sensorPin = M5.getPin(m5::pin_name_t::port_b_in);
 
+  // 日本語が出せるフォントにする（文字は画面の中央にそろえる）
+  M5.Display.setFont(&fonts::lgfxJapanGothic_24);
+  M5.Display.setTextDatum(middle_center);
+  int cx = M5.Display.width() / 2;
+
   // ゼロ点を測る（この間は吹かない）
-  M5.Display.setTextSize(2);
-  M5.Display.println("Don't blow...");
+  M5.Display.drawString("準備中...", cx, 90);
+  M5.Display.drawString("まだ吹かないでね", cx, 140);
   float sum = 0;
   for (int i = 0; i < 20; i++) {
     sum += readKPa();
@@ -44,7 +52,14 @@ void setup() {
   }
   zeroKPa = sum / 20;
 
+  // 計測画面の見出しを出す
   M5.Display.clear();
+  M5.Display.drawString("圧力", cx, 30);
+
+  // 数値用の大きいフォントにする（前の文字は黒で塗りつぶす）
+  M5.Display.setFont(&fonts::lgfxJapanGothic_40);
+  M5.Display.setTextColor(TFT_WHITE, TFT_BLACK);
+  M5.Display.setTextPadding(M5.Display.width());
 }
 
 // ===== 起動後、ずっと繰り返し実行される =====
@@ -55,10 +70,17 @@ void loop() {
   // ゼロ点からの圧力差を求める
   float p = readKPa() - zeroKPa;
 
-  // 画面とシリアルに表示する
-  M5.Display.setCursor(0, 0);
-  M5.Display.setTextSize(4);
-  M5.Display.printf("%6.1f kPa", p);
+  // 数値を画面の中央に表示する
+  M5.Display.drawString(String(p, 1) + " kPa", M5.Display.width() / 2, 100);
+
+  // 圧力をバーで表示する（MAX_KPA でいっぱい）
+  int barX = 20;
+  int barMax = M5.Display.width() - barX * 2;
+  int barW = constrain(p / MAX_KPA, 0.0f, 1.0f) * barMax;
+  M5.Display.fillRect(barX, 160, barW, 50, TFT_GREEN);
+  M5.Display.fillRect(barX + barW, 160, barMax - barW, 50, TFT_DARKGREY);
+
+  // シリアルにも出す（シリアルプロッタでグラフにできる）
   Serial.println(p);
 
   delay(50);
