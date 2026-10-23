@@ -206,10 +206,50 @@ body[data-phase="waiting"] .tile-meter {
   font-variant-numeric: tabular-nums;
 }
 
-/* 通信が途切れた子機 */
+/* ===== 通信が途切れた子機 ===== */
+/* 枠を赤い点線にし、風船・名前などを灰色にして、「通信切れ」の札を出す */
+/* 枠は outline で描く（border を太くするとマスの大きさが変わってしまうため） */
 .tile.offline {
-  opacity: 0.4;
-  border-style: dashed;
+  border-color: transparent;
+  outline: 2px dashed var(--ng);
+  outline-offset: -2px;
+}
+
+.tile.offline .tile-balloon svg,
+.tile.offline .tile-name,
+.tile.offline .tile-meter {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.tile.offline .tile-pressure {
+  color: var(--ng);
+}
+
+.tile-offline-badge {
+  display: none;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px 16px;
+  font-size: 22px;
+  font-weight: bold;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--ng);
+  border-radius: 999px;
+}
+
+/* プロジェクターでも気づけるよう、ゆっくり点滅させる */
+.tile.offline .tile-offline-badge {
+  display: block;
+  animation: offline-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes offline-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
 }
 
 /* ===== 割れた風船 ===== */
@@ -306,6 +346,45 @@ body[data-phase="waiting"] .tile-meter {
 .empty {
   color: var(--muted);
   text-align: center;
+}
+
+/* ===== Node-RED との接続切れ ===== */
+/* 風船は最後に届いた状態のまま止まるので、マス全体を暗くして中央に知らせを出す */
+body.disconnected .grid,
+body.disconnected .waiting-info {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+
+/* 順位表より手前に出す */
+.conn-lost {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 24px 48px;
+  text-align: center;
+  background: var(--panel);
+  border: 2px solid var(--ng);
+  border-radius: 16px;
+}
+
+.conn-lost[hidden] {
+  display: none;
+}
+
+.conn-lost-title {
+  margin: 0 0 8px;
+  font-size: 36px;
+  font-weight: bold;
+  color: var(--ng);
+}
+
+.conn-lost-sub {
+  margin: 0;
+  font-size: 22px;
+  color: var(--muted);
 }
 
 /* ===== 順位表 ===== */

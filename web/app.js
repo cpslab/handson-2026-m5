@@ -29,6 +29,7 @@
     playerCount: document.getElementById("player-count"),
     countdown: document.getElementById("countdown"),
     countdownText: document.getElementById("countdown-text"),
+    connLost: document.getElementById("conn-lost"),
     ranking: document.getElementById("ranking"),
     rankingList: document.getElementById("ranking-list"),
     rankingNone: document.getElementById("ranking-none"),
@@ -102,9 +103,23 @@
     }
   }
 
+  // 一度切れたら、再びつながるまで「接続が切れました」を出し続ける
+  // （再接続中は connecting → closed をくり返すので、closed のときだけ出すとちらつく）
+  let disconnected = false;
+
   function setConnStatus(status) {
     el.conn.dataset.status = status;
     el.conn.textContent = CONN_LABEL[status] || status;
+
+    if (status === "closed") disconnected = true;
+    if (status === "open" || status === "mock") disconnected = false;
+    el.connLost.hidden = !disconnected;
+    document.body.classList.toggle("disconnected", disconnected);
+
+    // 切れている間は押しても Node-RED に届かないので、ボタンを押せなくする
+    // （スタートは、つながったあとに届く state で段階に合わせて押せるようになる）
+    el.resetBtn.disabled = disconnected;
+    if (disconnected) el.startBtn.disabled = true;
   }
 
   // ===== 描画: state をそのまま画面に反映する =====
@@ -115,7 +130,7 @@
     el.timer.textContent = timerText(state);
 
     // スタートは待機中だけ押せる（Node-RED 側も待機中以外は無視する）
-    el.startBtn.disabled = state.phase !== "waiting";
+    el.startBtn.disabled = state.phase !== "waiting" || disconnected;
 
     const players = state.players || [];
     el.empty.hidden = players.length > 0;
@@ -322,6 +337,12 @@
       '  </g>' +
       '  <g class="shards">' + shardsSvg() + '</g>' +
       '</svg>';
+
+    // 通信切れの札（通信が途切れている間だけ表示）
+    const offlineBadge = document.createElement("div");
+    offlineBadge.className = "tile-offline-badge";
+    offlineBadge.textContent = "通信切れ";
+    balloonArea.append(offlineBadge);
 
     // 「パン！」の文字
     const popText = document.createElement("div");
