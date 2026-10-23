@@ -75,6 +75,27 @@ body {
   padding: 24px;
 }
 
+/* ===== 待機中の案内 ===== */
+.waiting-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 16px;
+  font-size: 22px;
+  color: var(--muted);
+}
+
+.waiting-info[hidden] {
+  display: none;
+}
+
+.player-count {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text);
+}
+
 /* 5列 × 2段。人数が少なくてもマスの大きさは変えない（接続するたびに風船の大きさが変わらないように） */
 .grid {
   display: grid;
@@ -154,6 +175,28 @@ body {
   white-space: nowrap;
   font-size: 24px;
   font-weight: bold;
+}
+
+/* 圧力メーター: 吹けているかの確認用なので待機中だけ出す */
+.tile-meter {
+  display: none;
+  width: 80%;
+  height: 12px;
+  margin: 6px 0 4px;
+  background: var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+body[data-phase="waiting"] .tile-meter {
+  display: block;
+}
+
+.tile-meter-fill {
+  width: 0;
+  height: 100%;
+  background: var(--balloon-color, #888);
+  transition: width 0.1s linear;
 }
 
 .tile-pressure {

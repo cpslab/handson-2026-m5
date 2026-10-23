@@ -25,6 +25,8 @@
     timer: document.getElementById("timer"),
     conn: document.getElementById("conn"),
     grid: document.getElementById("grid"),
+    waitingInfo: document.getElementById("waiting-info"),
+    playerCount: document.getElementById("player-count"),
     empty: document.getElementById("empty"),
     startBtn: document.getElementById("start-btn"),
     resetBtn: document.getElementById("reset-btn"),
@@ -103,6 +105,8 @@
   // ===== 描画: state をそのまま画面に反映する =====
   function render(state) {
     el.phase.textContent = PHASE_LABEL[state.phase] || state.phase;
+    // 段階ごとの見た目の切り替えは CSS 側で行う（例: 圧力メーターは待機中だけ出す）
+    document.body.dataset.phase = state.phase;
     el.timer.textContent = timerText(state);
 
     // スタートは待機中だけ押せる（Node-RED 側も待機中以外は無視する）
@@ -112,6 +116,17 @@
     el.empty.hidden = players.length > 0;
     el.grid.hidden = players.length === 0;
     renderGrid(players);
+    renderWaitingInfo(state.phase, players);
+  }
+
+  // ===== 待機中の案内: 接続人数 =====
+  function renderWaitingInfo(phase, players) {
+    el.waitingInfo.hidden = phase !== "waiting" || players.length === 0;
+
+    const online = players.filter(function (p) { return p.online; }).length;
+    const offline = players.length - online;
+    el.playerCount.textContent =
+      "接続中 " + online + " 人" + (offline > 0 ? "（通信切れ " + offline + " 人）" : "");
   }
 
   function timerText(state) {
@@ -132,6 +147,9 @@
 
   // 風船の大きさ: level 0 → MIN_SCALE 倍、level 1 → 1 倍
   const MIN_SCALE = 0.3;
+
+  // 圧力メーターが満タンになる圧力 [kPa]。吹けているかを見るための表示用で、ゲームの判定には使わない
+  const METER_MAX_KPA = 10;
 
   function renderGrid(players) {
     const shown = players.slice(0, MAX_TILES);
@@ -159,6 +177,7 @@
   //   │  順位    │
   //   │  風船    │
   //   │  名前    │
+  //   │  メーター │  ← 待機中だけ表示
   //   │  圧力    │
   //   └──────────┘
   function createTile() {
@@ -183,16 +202,23 @@
     const name = document.createElement("div");
     name.className = "tile-name";
 
+    const meter = document.createElement("div");
+    meter.className = "tile-meter";
+    const meterFill = document.createElement("div");
+    meterFill.className = "tile-meter-fill";
+    meter.append(meterFill);
+
     const pressure = document.createElement("div");
     pressure.className = "tile-pressure";
 
-    root.append(rank, balloonArea, name, pressure);
+    root.append(rank, balloonArea, name, meter, pressure);
 
     return {
       root: root,
       rank: rank,
       balloon: balloonArea.querySelector(".balloon"),
       name: name,
+      meterFill: meterFill,
       pressure: pressure,
     };
   }
@@ -208,6 +234,11 @@
 
     // 風船は糸の下端（中央下）を支点に拡大・縮小する
     tile.balloon.style.transform = "scale(" + scale.toFixed(3) + ")";
+
+    // 圧力メーター（マイナス＝吸ったときは 0 として扱う）
+    const p = typeof player.p === "number" && player.online ? player.p : 0;
+    const meterRatio = Math.max(0, Math.min(1, p / METER_MAX_KPA));
+    tile.meterFill.style.width = (meterRatio * 100).toFixed(1) + "%";
 
     tile.name.textContent = String(player.id);
     tile.rank.textContent = player.rank != null ? player.rank + "位" : "";

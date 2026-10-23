@@ -18,6 +18,11 @@
   <!-- ===== 中央: 参加者の風船（5列 × 2段の10マス） =====
        マスの中身は app.js の createTile() でつくる -->
   <main class="stage">
+    <!-- 待機中だけ出す案内（接続人数と、吹けているかの確認） -->
+    <div class="waiting-info" id="waiting-info" hidden>
+      <span class="player-count" id="player-count"></span>
+      <span>チューブに息を吹いて、自分のバーが動くか確認しよう</span>
+    </div>
     <div class="grid" id="grid"></div>
     <p class="empty" id="empty">接続している子機はありません</p>
   </main>
