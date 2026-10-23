@@ -27,6 +27,8 @@
     grid: document.getElementById("grid"),
     waitingInfo: document.getElementById("waiting-info"),
     playerCount: document.getElementById("player-count"),
+    countdown: document.getElementById("countdown"),
+    countdownText: document.getElementById("countdown-text"),
     empty: document.getElementById("empty"),
     startBtn: document.getElementById("start-btn"),
     resetBtn: document.getElementById("reset-btn"),
@@ -117,6 +119,7 @@
     el.grid.hidden = players.length === 0;
     renderGrid(players);
     renderWaitingInfo(state.phase, players);
+    renderCountdown(state);
   }
 
   // ===== 待機中の案内: 接続人数 =====
@@ -129,14 +132,54 @@
       "接続中 " + online + " 人" + (offline > 0 ? "（通信切れ " + offline + " 人）" : "");
   }
 
+  // カウントダウンの数字は画面中央に大きく出すので、上部には残り時間だけ出す
   function timerText(state) {
-    if (state.phase === "countdown" && state.countdown != null) {
-      return String(state.countdown);
-    }
     if (state.phase === "playing" && state.remaining != null) {
       return "残り " + state.remaining.toFixed(1) + " 秒";
     }
     return "";
+  }
+
+  // ===== カウントダウン: 3・2・1 → スタート！ =====
+  // state は1秒に20回届くので、数字が変わったときだけアニメーションをやり直す。
+  // 「スタート！」は countdown → playing に変わった瞬間をブラウザで見つけて少しだけ出す
+  // （計測中にページを開き直したときは出ない）。
+  const GO_SHOW_MS = 800;
+  let lastPhase = null;
+  let lastCountdownText = null;
+  let goTimer = null;
+
+  function renderCountdown(state) {
+    if (state.phase === "countdown" && state.countdown != null) {
+      clearTimeout(goTimer);
+      goTimer = null;
+      showCountdownText(String(state.countdown), false);
+    } else if (lastPhase === "countdown" && state.phase === "playing") {
+      showCountdownText("スタート！", true);
+      goTimer = setTimeout(hideCountdown, GO_SHOW_MS);
+    } else if (goTimer === null) {
+      hideCountdown();
+    }
+    lastPhase = state.phase;
+  }
+
+  function showCountdownText(text, isGo) {
+    el.countdown.hidden = false;
+    if (text === lastCountdownText) return;
+    lastCountdownText = text;
+
+    el.countdownText.textContent = text;
+    el.countdownText.classList.toggle("go", isGo);
+    // アニメーションを最初から再生し直す（クラスを外す → 再計算させる → 付け直す）
+    el.countdownText.classList.remove("pop");
+    void el.countdownText.offsetWidth;
+    el.countdownText.classList.add("pop");
+  }
+
+  function hideCountdown() {
+    el.countdown.hidden = true;
+    lastCountdownText = null;
+    goTimer = null;
   }
 
   // ===== 風船のマス =====
