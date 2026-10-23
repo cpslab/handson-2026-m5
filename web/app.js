@@ -29,6 +29,9 @@
     playerCount: document.getElementById("player-count"),
     countdown: document.getElementById("countdown"),
     countdownText: document.getElementById("countdown-text"),
+    ranking: document.getElementById("ranking"),
+    rankingList: document.getElementById("ranking-list"),
+    rankingNone: document.getElementById("ranking-none"),
     empty: document.getElementById("empty"),
     startBtn: document.getElementById("start-btn"),
     resetBtn: document.getElementById("reset-btn"),
@@ -120,6 +123,7 @@
     renderGrid(players);
     renderWaitingInfo(state.phase, players);
     renderCountdown(state);
+    renderRanking(state.phase, players);
   }
 
   // ===== 待機中の案内: 接続人数 =====
@@ -180,6 +184,75 @@
     el.countdown.hidden = true;
     lastCountdownText = null;
     goTimer = null;
+  }
+
+  // ===== 順位表 =====
+  // 終了したら、順位が付いた人を 1位から順に並べて出す。
+  // 最後の人が割れた瞬間に終了になるので、破裂演出が見えるよう少し待ってから出す
+  // （終了中にページを開いたときは待たずに出す）。
+  const RANKING_DELAY_MS = 1000;
+  let rankingLastPhase = null;
+  let rankingTimer = null;
+  let rankingKey = null; // 今表示している順位表の中身（変わったときだけ作り直す）
+
+  function renderRanking(phase, players) {
+    if (phase !== "finished") {
+      clearTimeout(rankingTimer);
+      rankingTimer = null;
+      el.ranking.hidden = true;
+      rankingKey = null;
+    } else if (rankingLastPhase !== null && rankingLastPhase !== "finished") {
+      // 今まさに終了した → 少し待ってから出す
+      rankingTimer = setTimeout(function () {
+        rankingTimer = null;
+        el.ranking.hidden = false;
+      }, RANKING_DELAY_MS);
+    } else if (rankingTimer === null) {
+      el.ranking.hidden = false;
+    }
+    rankingLastPhase = phase;
+
+    if (phase === "finished") {
+      updateRankingList(players);
+    }
+  }
+
+  function updateRankingList(players) {
+    const ranked = players
+      .filter(function (p) { return p.rank != null; })
+      .sort(function (a, b) { return a.rank - b.rank; });
+
+    // state は1秒に20回届くので、中身が変わったときだけ作り直す（行が出てくるアニメーションをやり直さないため）
+    const key = JSON.stringify(ranked.map(function (p) { return [p.rank, p.id, p.color]; }));
+    if (key === rankingKey) return;
+    rankingKey = key;
+
+    el.rankingNone.hidden = ranked.length > 0;
+    el.rankingList.replaceChildren.apply(el.rankingList, ranked.map(rankingRow));
+  }
+
+  // 順位表の1行（ID は子機から届く文字列なので textContent で入れる）
+  function rankingRow(player, index) {
+    const li = document.createElement("li");
+    li.className = "ranking-row";
+    li.dataset.rank = String(player.rank);
+    li.style.setProperty("--balloon-color", player.color || "#888");
+    // 1位から順に少しずつ遅らせて出す
+    li.style.animationDelay = (index * 0.15).toFixed(2) + "s";
+
+    const rank = document.createElement("span");
+    rank.className = "ranking-rank";
+    rank.textContent = player.rank + "位";
+
+    const dot = document.createElement("span");
+    dot.className = "ranking-dot";
+
+    const name = document.createElement("span");
+    name.className = "ranking-name";
+    name.textContent = String(player.id);
+
+    li.append(rank, dot, name);
+    return li;
   }
 
   // ===== 風船のマス =====
