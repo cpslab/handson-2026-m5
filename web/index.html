@@ -15,23 +15,10 @@
     <div class="conn" id="conn" data-status="connecting">接続中…</div>
   </header>
 
-  <!-- ===== 中央: 参加者の表示 =====
-       今は動作確認用の一覧表。風船の表示は feature/web-balloon-grid で作る -->
+  <!-- ===== 中央: 参加者の風船（5列 × 2段の10マス） =====
+       マスの中身は app.js の createTile() でつくる -->
   <main class="stage">
-    <table class="debug-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ID</th>
-          <th>膨らみ (level)</th>
-          <th>圧力 p [kPa]</th>
-          <th>破裂</th>
-          <th>順位</th>
-          <th>通信</th>
-        </tr>
-      </thead>
-      <tbody id="players"></tbody>
-    </table>
+    <div class="grid" id="grid"></div>
     <p class="empty" id="empty">接続している子機はありません</p>
   </main>
 
