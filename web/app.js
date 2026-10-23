@@ -194,6 +194,11 @@
   // 圧力メーターが満タンになる圧力 [kPa]。吹けているかを見るための表示用で、ゲームの判定には使わない
   const METER_MAX_KPA = 10;
 
+  // 破裂演出の長さ [ミリ秒]（style.css のアニメーションの長さと合わせる）
+  const BURST_ANIM_MS = 700;
+  // 飛び散る破片の数
+  const SHARD_COUNT = 10;
+
   function renderGrid(players) {
     const shown = players.slice(0, MAX_TILES);
     if (players.length > MAX_TILES) {
@@ -239,8 +244,17 @@
       '    <ellipse class="balloon-body" cx="50" cy="60" rx="42" ry="52" />' +
       '    <path class="balloon-knot" d="M44 118 L56 118 L50 110 Z" />' +
       '    <ellipse class="balloon-shine" cx="34" cy="38" rx="8" ry="14" />' +
+      // 割れたあとに結び目に残る切れ端（割れるまでは非表示）
+      '    <path class="balloon-remnant" d="M43 112 L40 102 L46 106 L49 98 L53 105 L59 100 L57 112 Z" />' +
       '  </g>' +
+      '  <g class="shards">' + shardsSvg() + '</g>' +
       '</svg>';
+
+    // 「パン！」の文字
+    const popText = document.createElement("div");
+    popText.className = "tile-pop-text";
+    popText.textContent = "パン！";
+    balloonArea.append(popText);
 
     const name = document.createElement("div");
     name.className = "tile-name";
@@ -260,6 +274,8 @@
       root: root,
       rank: rank,
       balloon: balloonArea.querySelector(".balloon"),
+      wasBurst: null, // 前回の burst（null = まだ一度も描いていない）
+      burstTimer: null,
       name: name,
       meterFill: meterFill,
       pressure: pressure,
@@ -272,7 +288,7 @@
     const scale = MIN_SCALE + (1 - MIN_SCALE) * level;
 
     tile.root.classList.toggle("offline", !player.online);
-    tile.root.classList.toggle("burst", !!player.burst);
+    updateBurst(tile, !!player.burst);
     tile.root.style.setProperty("--balloon-color", player.color || "#888");
 
     // 風船は糸の下端（中央下）を支点に拡大・縮小する
@@ -290,6 +306,86 @@
       : "通信が途切れています";
   }
 
+  // ===== 破裂演出 =====
+  // burst が false → true に変わった瞬間だけ演出を再生する。
+  // ページを開いた時点ですでに割れている風船は、演出なしで割れた姿にする。
+  function updateBurst(tile, burst) {
+    if (burst && tile.wasBurst === false) {
+      playBurst(tile);
+    }
+    if (!burst) {
+      // リセットされたら演出の途中でも元に戻す
+      clearTimeout(tile.burstTimer);
+      tile.root.classList.remove("bursting");
+    }
+    tile.root.classList.toggle("burst", burst);
+    tile.wasBurst = burst;
+  }
+
+  function playBurst(tile) {
+    // アニメーションを最初から再生し直す（クラスを外す → 再計算させる → 付け直す）
+    tile.root.classList.remove("bursting");
+    void tile.root.offsetWidth;
+    tile.root.classList.add("bursting");
+
+    clearTimeout(tile.burstTimer);
+    tile.burstTimer = setTimeout(function () {
+      tile.root.classList.remove("bursting");
+    }, BURST_ANIM_MS);
+
+    playPopSound();
+  }
+
+  // 破片の SVG をつくる。風船のふちから外向きに飛ぶよう、行き先（--dx, --dy）と回転（--rot）を持たせる
+  function shardsSvg() {
+    let svg = "";
+    for (let i = 0; i < SHARD_COUNT; i++) {
+      const angle = (i / SHARD_COUNT) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+      const x = 50 + Math.cos(angle) * 30;
+      const y = 60 + Math.sin(angle) * 38;
+      const dist = 30 + Math.random() * 25;
+      const style =
+        "--dx:" + (Math.cos(angle) * dist).toFixed(1) + "px;" +
+        "--dy:" + (Math.sin(angle) * dist).toFixed(1) + "px;" +
+        "--rot:" + Math.round((Math.random() - 0.5) * 360) + "deg";
+      svg +=
+        '<path class="shard" style="' + style + '" d="M' + x.toFixed(1) + " " + y.toFixed(1) +
+        ' l10 -5 l-3 11 z" />';
+    }
+    return svg;
+  }
+
+  // ===== 破裂音 =====
+  // 音声ファイルは使わず、ブラウザでノイズを鳴らして「パン」という音をつくる。
+  // ブラウザは、画面を一度クリックするまで音を鳴らさないので、スタートボタンを押したときに準備する。
+  let audioCtx = null;
+
+  function prepareSound() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    if (!audioCtx) audioCtx = new AudioContext();
+    audioCtx.resume();
+  }
+
+  function playPopSound() {
+    if (!audioCtx || audioCtx.state !== "running") return;
+
+    // 0.15秒分のノイズを、すぐに小さくなるように鳴らす
+    const length = Math.floor(audioCtx.sampleRate * 0.15);
+    const buffer = audioCtx.createBuffer(1, length, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 4);
+    }
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    const gain = audioCtx.createGain();
+    gain.gain.value = 0.8;
+    source.connect(gain).connect(audioCtx.destination);
+    source.start();
+  }
+
   // ===== 起動 =====
   const handlers = { onMessage: handleMessage, onStatus: setConnStatus };
   const connection = useMock
@@ -297,6 +393,7 @@
     : connectWebSocket(wsUrl, handlers);
 
   el.startBtn.addEventListener("click", function () {
+    prepareSound();
     connection.send({ type: "start" });
   });
 

@@ -211,18 +211,95 @@ body[data-phase="waiting"] .tile-meter {
   border-style: dashed;
 }
 
-/* 割れた風船（演出は feature/web-burst で作る。今は風船を消して印だけ出す） */
-.tile.burst .balloon {
-  visibility: hidden;
+/* ===== 割れた風船 ===== */
+/* 割れたあと: 風船の本体を消し、結び目・糸・切れ端だけを残す */
+.balloon-remnant {
+  display: none;
+  fill: var(--balloon-color, #888);
 }
 
-.tile.burst .tile-balloon::after {
-  content: "💥";
+.tile.burst .balloon-body,
+.tile.burst .balloon-shine {
+  display: none;
+}
+
+.tile.burst .balloon-remnant {
+  display: inline;
+}
+
+/* 破裂演出（.bursting が付いている 0.7 秒間だけ）。長さは app.js の BURST_ANIM_MS と合わせる */
+.shard {
+  display: none;
+  fill: var(--balloon-color, #888);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.tile.bursting .shard {
+  display: inline;
+  animation: shard-fly 0.7s ease-out forwards;
+}
+
+@keyframes shard-fly {
+  from {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+.tile-balloon {
+  position: relative;
+}
+
+.tile-pop-text {
+  display: none;
   position: absolute;
   top: 35%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 64px;
+  font-size: 48px;
+  font-weight: bold;
+  color: var(--text);
+  white-space: nowrap;
+  text-shadow: 0 0 12px var(--balloon-color, #888);
+  pointer-events: none;
+}
+
+.tile.bursting .tile-pop-text {
+  display: block;
+  animation: pop-text 0.7s ease-out forwards;
+}
+
+@keyframes pop-text {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+/* マスが一瞬、風船の色に光る */
+.tile.bursting {
+  animation: tile-flash 0.7s ease-out;
+}
+
+@keyframes tile-flash {
+  from {
+    box-shadow: 0 0 0 4px var(--balloon-color, #888), 0 0 40px var(--balloon-color, #888);
+  }
+  to {
+    box-shadow: 0 0 0 0 transparent, 0 0 0 transparent;
+  }
 }
 
 .empty {
