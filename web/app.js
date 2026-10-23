@@ -24,7 +24,7 @@
     phase: document.getElementById("phase"),
     timer: document.getElementById("timer"),
     conn: document.getElementById("conn"),
-    players: document.getElementById("players"),
+    grid: document.getElementById("grid"),
     empty: document.getElementById("empty"),
     startBtn: document.getElementById("start-btn"),
     resetBtn: document.getElementById("reset-btn"),
@@ -110,7 +110,8 @@
 
     const players = state.players || [];
     el.empty.hidden = players.length > 0;
-    el.players.replaceChildren.apply(el.players, players.map(playerRow));
+    el.grid.hidden = players.length === 0;
+    renderGrid(players);
   }
 
   function timerText(state) {
@@ -123,44 +124,96 @@
     return "";
   }
 
-  // 参加者1人分の行をつくる（ID は子機から届く文字列なので textContent で入れる）
-  function playerRow(player, index) {
-    const tr = document.createElement("tr");
-    tr.classList.toggle("offline", !player.online);
+  // ===== 風船のマス =====
+  // state は1秒に20回届くので、マスは毎回つくり直さず、つくったものを使い回して中身だけ書き換える。
+  // players の配列の順番 = マスの位置（Node-RED が接続順で固定する）。
+  const MAX_TILES = 10;
+  const tiles = [];
 
-    const level = Math.max(0, Math.min(1, player.level || 0));
+  // 風船の大きさ: level 0 → MIN_SCALE 倍、level 1 → 1 倍
+  const MIN_SCALE = 0.3;
 
-    const idCell = document.createElement("td");
-    const swatch = document.createElement("span");
-    swatch.className = "swatch";
-    swatch.style.background = player.color || "#888";
-    idCell.append(swatch, String(player.id));
+  function renderGrid(players) {
+    const shown = players.slice(0, MAX_TILES);
+    if (players.length > MAX_TILES) {
+      console.warn("参加者が " + MAX_TILES + " 人を超えたため、" + (MAX_TILES + 1) + " 人目以降は表示しません");
+    }
 
-    const levelCell = document.createElement("td");
-    const bar = document.createElement("span");
-    bar.className = "bar";
-    const fill = document.createElement("span");
-    fill.style.width = (level * 100).toFixed(1) + "%";
-    fill.style.background = player.color || "#888";
-    bar.append(fill);
-    levelCell.append(bar, (level * 100).toFixed(0) + "%");
+    // 足りないマスを足し、余ったマスを消す
+    while (tiles.length < shown.length) {
+      const tile = createTile();
+      tiles.push(tile);
+      el.grid.append(tile.root);
+    }
+    while (tiles.length > shown.length) {
+      tiles.pop().root.remove();
+    }
 
-    tr.append(
-      cell(String(index + 1)),
-      idCell,
-      levelCell,
-      cell(typeof player.p === "number" ? player.p.toFixed(1) : "-"),
-      cell(player.burst ? "💥" : ""),
-      cell(player.rank != null ? player.rank + "位" : ""),
-      cell(player.online ? "○" : "×")
-    );
-    return tr;
+    shown.forEach(function (player, i) {
+      updateTile(tiles[i], player);
+    });
   }
 
-  function cell(text) {
-    const td = document.createElement("td");
-    td.textContent = text;
-    return td;
+  // マス1つ分の部品をつくる
+  //   ┌──────────┐
+  //   │  順位    │
+  //   │  風船    │
+  //   │  名前    │
+  //   │  圧力    │
+  //   └──────────┘
+  function createTile() {
+    const root = document.createElement("div");
+    root.className = "tile";
+
+    const rank = document.createElement("div");
+    rank.className = "tile-rank";
+
+    const balloonArea = document.createElement("div");
+    balloonArea.className = "tile-balloon";
+    balloonArea.innerHTML =
+      '<svg viewBox="0 0 100 160" aria-hidden="true">' +
+      '  <g class="balloon">' +
+      '    <path class="balloon-string" d="M50 118 q -6 14 0 26 t 0 16" />' +
+      '    <ellipse class="balloon-body" cx="50" cy="60" rx="42" ry="52" />' +
+      '    <path class="balloon-knot" d="M44 118 L56 118 L50 110 Z" />' +
+      '    <ellipse class="balloon-shine" cx="34" cy="38" rx="8" ry="14" />' +
+      '  </g>' +
+      '</svg>';
+
+    const name = document.createElement("div");
+    name.className = "tile-name";
+
+    const pressure = document.createElement("div");
+    pressure.className = "tile-pressure";
+
+    root.append(rank, balloonArea, name, pressure);
+
+    return {
+      root: root,
+      rank: rank,
+      balloon: balloonArea.querySelector(".balloon"),
+      name: name,
+      pressure: pressure,
+    };
+  }
+
+  // マス1つ分を player の内容で書き換える（ID は子機から届く文字列なので textContent で入れる）
+  function updateTile(tile, player) {
+    const level = Math.max(0, Math.min(1, player.level || 0));
+    const scale = MIN_SCALE + (1 - MIN_SCALE) * level;
+
+    tile.root.classList.toggle("offline", !player.online);
+    tile.root.classList.toggle("burst", !!player.burst);
+    tile.root.style.setProperty("--balloon-color", player.color || "#888");
+
+    // 風船は糸の下端（中央下）を支点に拡大・縮小する
+    tile.balloon.style.transform = "scale(" + scale.toFixed(3) + ")";
+
+    tile.name.textContent = String(player.id);
+    tile.rank.textContent = player.rank != null ? player.rank + "位" : "";
+    tile.pressure.textContent = player.online
+      ? (typeof player.p === "number" ? player.p.toFixed(1) : "-") + " kPa"
+      : "通信が途切れています";
   }
 
   // ===== 起動 =====

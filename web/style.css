@@ -19,7 +19,7 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -69,56 +69,117 @@ body {
 /* ===== 中央 ===== */
 .stage {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: 24px;
-  overflow: auto;
 }
 
-.debug-table {
+/* 5列 × 2段。人数が少なくてもマスの大きさは変えない（接続するたびに風船の大きさが変わらないように） */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.grid[hidden] {
+  display: none;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.tile-rank {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--warn);
+}
+
+.tile-balloon {
+  flex: 1;
   width: 100%;
-  border-collapse: collapse;
-  font-size: 18px;
+  min-height: 0;
+}
+
+.tile-balloon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* 糸の下端（中央下）を支点に拡大する。届く間隔（50ms）より少し長めになめらかにつなぐ */
+.balloon {
+  transform-box: view-box;
+  transform-origin: 50% 100%;
+  transition: transform 0.1s linear;
+}
+
+.balloon-body,
+.balloon-knot {
+  fill: var(--balloon-color, #888);
+}
+
+.balloon-string {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+.balloon-shine {
+  fill: #fff;
+  opacity: 0.35;
+}
+
+.tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.tile-pressure {
+  font-size: 14px;
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
-.debug-table th,
-.debug-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-}
-
-.debug-table th {
-  color: var(--muted);
-  font-weight: normal;
-}
-
-.debug-table tr.offline {
+/* 通信が途切れた子機 */
+.tile.offline {
   opacity: 0.4;
+  border-style: dashed;
 }
 
-.swatch {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  margin-right: 8px;
-  border-radius: 50%;
-  vertical-align: middle;
+/* 割れた風船（演出は feature/web-burst で作る。今は風船を消して印だけ出す） */
+.tile.burst .balloon {
+  visibility: hidden;
 }
 
-.bar {
-  display: inline-block;
-  width: 160px;
-  height: 10px;
-  margin-right: 8px;
-  background: var(--line);
-  border-radius: 5px;
-  overflow: hidden;
-  vertical-align: middle;
-}
-
-.bar > span {
-  display: block;
-  height: 100%;
+.tile.burst .tile-balloon::after {
+  content: "💥";
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 64px;
 }
 
 .empty {
