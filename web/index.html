@@ -26,6 +26,12 @@
     <div class="grid" id="grid"></div>
     <p class="empty" id="empty">接続している子機はありません</p>
 
+    <!-- Node-RED との接続が切れたときに出す（風船は最後に届いた状態のまま止まるため） -->
+    <div class="conn-lost" id="conn-lost" hidden>
+      <p class="conn-lost-title">Node-RED との接続が切れました</p>
+      <p class="conn-lost-sub">再接続しています…</p>
+    </div>
+
     <!-- 終了したら風船の上に重ねて出す順位表（行は app.js の renderRanking() でつくる） -->
     <div class="ranking" id="ranking" hidden>
       <h2 class="ranking-title">結果</h2>
