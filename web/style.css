@@ -68,6 +68,7 @@ body {
 
 /* ===== 中央 ===== */
 .stage {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -305,6 +306,101 @@ body[data-phase="waiting"] .tile-meter {
 .empty {
   color: var(--muted);
   text-align: center;
+}
+
+/* ===== 順位表 ===== */
+/* 風船のマスの上に重ねる。上部と下部（リセットボタン）は隠さない */
+.ranking {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 16, 0.8);
+  animation: ranking-in 0.4s ease-out;
+}
+
+.ranking[hidden] {
+  display: none;
+}
+
+@keyframes ranking-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ranking-title {
+  margin: 0 0 24px;
+  font-size: 56px;
+  color: var(--warn);
+}
+
+.ranking-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 40%;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 32px;
+  font-size: 40px;
+  font-weight: bold;
+  border-bottom: 1px solid var(--line);
+  /* 1行ずつ下から出てくる（遅らせる時間は app.js で行ごとに設定） */
+  animation: ranking-row-in 0.4s ease-out both;
+}
+
+@keyframes ranking-row-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 1位だけ文字が大きいので、名前の位置がそろうよう順位の欄の幅は px で固定する */
+.ranking-rank {
+  flex: none;
+  width: 150px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* 1〜3位は金・銀・銅。1位は大きく */
+.ranking-row[data-rank="1"] {
+  font-size: 56px;
+}
+
+.ranking-row[data-rank="1"] .ranking-rank { color: #ffd34d; }
+.ranking-row[data-rank="2"] .ranking-rank { color: #d6dce6; }
+.ranking-row[data-rank="3"] .ranking-rank { color: #e0965a; }
+
+/* 名前の横に風船の色の丸を出す */
+.ranking-dot {
+  flex: none;
+  width: 0.7em;
+  height: 0.85em;
+  border-radius: 50%;
+  background: var(--balloon-color, #888);
+}
+
+.ranking-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-none {
+  font-size: 32px;
+  color: var(--muted);
 }
 
 /* ===== カウントダウン ===== */

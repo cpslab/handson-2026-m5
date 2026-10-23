@@ -25,6 +25,13 @@
     </div>
     <div class="grid" id="grid"></div>
     <p class="empty" id="empty">接続している子機はありません</p>
+
+    <!-- 終了したら風船の上に重ねて出す順位表（行は app.js の renderRanking() でつくる） -->
+    <div class="ranking" id="ranking" hidden>
+      <h2 class="ranking-title">結果</h2>
+      <ol class="ranking-list" id="ranking-list"></ol>
+      <p class="ranking-none" id="ranking-none">割れた人はいませんでした</p>
+    </div>
   </main>
 
   <!-- ===== カウントダウン（3・2・1 → スタート！）を画面中央に大きく出す ===== -->
