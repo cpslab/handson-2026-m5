@@ -11,6 +11,10 @@
 secrets.h
 flows_cred.json
 
+# Node-RED がデプロイ時につくるバックアップ
+.flows.json.backup
+.flows_cred.json.backup
+
 # OS
 .DS_Store
 Thumbs.db
