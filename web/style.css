@@ -230,6 +230,52 @@ body[data-phase="waiting"] .tile-meter {
   text-align: center;
 }
 
+/* ===== カウントダウン ===== */
+/* 画面全体に薄い幕をかけ、後ろの風船が少し見えるようにする */
+.countdown {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 16, 0.6);
+  pointer-events: none;
+}
+
+.countdown[hidden] {
+  display: none;
+}
+
+.countdown-text {
+  font-size: min(40vh, 40vw);
+  font-weight: bold;
+  line-height: 1;
+  color: var(--text);
+  text-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-text.go {
+  font-size: min(20vh, 14vw);
+  color: var(--accent);
+}
+
+/* 数字が変わるたびに、大きく出てきて縮む */
+.countdown-text.pop {
+  animation: countdown-pop 0.4s ease-out;
+}
+
+@keyframes countdown-pop {
+  from {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* ===== 下部 ===== */
 .controls {
   display: flex;
