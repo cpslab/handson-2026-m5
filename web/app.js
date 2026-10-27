@@ -128,6 +128,9 @@
     // 段階ごとの見た目の切り替えは CSS 側で行う（例: 圧力メーターは待機中だけ出す）
     document.body.dataset.phase = state.phase;
     el.timer.textContent = timerText(state);
+    // 残り時間が少なくなったら赤くして目立たせる
+    el.timer.classList.toggle("hurry",
+      state.phase === "playing" && state.remaining != null && state.remaining <= HURRY_SECONDS);
 
     // スタートは待機中だけ押せる（Node-RED 側も待機中以外は無視する）
     el.startBtn.disabled = state.phase !== "waiting" || disconnected;
@@ -150,6 +153,9 @@
     el.playerCount.textContent =
       "接続中 " + online + " 人" + (offline > 0 ? "（通信切れ " + offline + " 人）" : "");
   }
+
+  // 残り何秒から残り時間を赤くするか
+  const HURRY_SECONDS = 10;
 
   // カウントダウンの数字は画面中央に大きく出すので、上部には残り時間だけ出す
   function timerText(state) {
@@ -316,7 +322,10 @@
   //   │  メーター │  ← 待機中だけ表示
   //   │  圧力    │
   //   └──────────┘
+  let tileCount = 0; // つくったマスの数（陰影の id をマスごとに変えるため）
+
   function createTile() {
+    tileCount += 1;
     const root = document.createElement("div");
     root.className = "tile";
 
@@ -327,13 +336,25 @@
     balloonArea.className = "tile-balloon";
     balloonArea.innerHTML =
       '<svg viewBox="0 0 100 160" aria-hidden="true">' +
+      // 風船の立体感を出す陰影（左上が明るく、ふちが暗い）。id はマスごとに変える
+      '  <defs>' +
+      '    <radialGradient id="shade-' + tileCount + '" cx="35%" cy="30%" r="75%">' +
+      '      <stop offset="0" stop-color="#fff" stop-opacity="0.35" />' +
+      '      <stop offset="0.5" stop-color="#fff" stop-opacity="0" />' +
+      '      <stop offset="1" stop-color="#000" stop-opacity="0.35" />' +
+      '    </radialGradient>' +
+      '  </defs>' +
       '  <g class="balloon">' +
+      // 風船を結び目のところでゆらゆら揺らす（マスごとに揺れ方をずらす）
+      '   <g class="balloon-sway" style="animation-delay:-' + (Math.random() * 4).toFixed(2) + 's">' +
       '    <path class="balloon-string" d="M50 118 q -6 14 0 26 t 0 16" />' +
       '    <ellipse class="balloon-body" cx="50" cy="60" rx="42" ry="52" />' +
       '    <path class="balloon-knot" d="M44 118 L56 118 L50 110 Z" />' +
+      '    <ellipse class="balloon-shade" cx="50" cy="60" rx="42" ry="52" fill="url(#shade-' + tileCount + ')" />' +
       '    <ellipse class="balloon-shine" cx="34" cy="38" rx="8" ry="14" />' +
       // 割れたあとに結び目に残る切れ端（割れるまでは非表示）
       '    <path class="balloon-remnant" d="M43 112 L40 102 L46 106 L49 98 L53 105 L59 100 L57 112 Z" />' +
+      '   </g>' +
       '  </g>' +
       '  <g class="shards">' + shardsSvg() + '</g>' +
       '</svg>';

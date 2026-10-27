@@ -22,7 +22,8 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  /* 中央が少し明るい背景（プロジェクターで見たとき、のっぺりしないように） */
+  background: radial-gradient(ellipse at 50% 40%, #1c2030 0%, var(--bg) 70%);
   color: var(--text);
   font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
 }
@@ -39,25 +40,37 @@ body {
 
 .title {
   margin: 0;
-  font-size: 28px;
+  font-size: clamp(21px, 3.8vh, 45px);
 }
 
 .phase {
-  font-size: 24px;
+  font-size: clamp(18px, 3.2vh, 38px);
   font-weight: bold;
   color: var(--accent);
 }
 
+/* 残り時間は後ろの席からも見えるよう大きく。残りわずかになったら赤くして脈打たせる */
 .timer {
-  font-size: 24px;
+  font-size: clamp(22px, 4.4vh, 52px);
+  font-weight: bold;
   font-variant-numeric: tabular-nums;
+}
+
+.timer.hurry {
+  color: var(--ng);
+  animation: timer-hurry 1s ease-in-out infinite;
+}
+
+@keyframes timer-hurry {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
 }
 
 .conn {
   margin-left: auto;
   padding: 4px 12px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: clamp(12px, 1.9vh, 22px);
   border: 1px solid currentColor;
 }
 
@@ -83,7 +96,7 @@ body {
   justify-content: center;
   gap: 24px;
   margin-bottom: 16px;
-  font-size: 22px;
+  font-size: clamp(16px, 3.0vh, 35px);
   color: var(--muted);
 }
 
@@ -92,7 +105,7 @@ body {
 }
 
 .player-count {
-  font-size: 28px;
+  font-size: clamp(21px, 3.8vh, 45px);
   font-weight: bold;
   color: var(--text);
 }
@@ -121,14 +134,14 @@ body {
   padding: 12px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .tile-rank {
   position: absolute;
   top: 8px;
   left: 12px;
-  font-size: 28px;
+  font-size: clamp(21px, 3.8vh, 45px);
   font-weight: bold;
   color: var(--warn);
 }
@@ -164,6 +177,24 @@ body {
   stroke-width: 1.5;
 }
 
+/* 結び目（50, 118）を支点に、左右に少し揺れる */
+.balloon-sway {
+  transform-box: view-box;
+  transform-origin: 50px 118px;
+  animation: balloon-sway 4s ease-in-out infinite;
+}
+
+@keyframes balloon-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+
+/* 割れた風船・通信切れの風船は揺らさない */
+.tile.burst .balloon-sway,
+.tile.offline .balloon-sway {
+  animation: none;
+}
+
 .balloon-shine {
   fill: #fff;
   opacity: 0.35;
@@ -174,7 +205,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 24px;
+  font-size: clamp(18px, 3.2vh, 38px);
   font-weight: bold;
 }
 
@@ -201,7 +232,7 @@ body[data-phase="waiting"] .tile-meter {
 }
 
 .tile-pressure {
-  font-size: 14px;
+  font-size: clamp(12px, 1.9vh, 22px);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
@@ -233,7 +264,7 @@ body[data-phase="waiting"] .tile-meter {
   left: 50%;
   transform: translate(-50%, -50%);
   padding: 6px 16px;
-  font-size: 22px;
+  font-size: clamp(16px, 3.0vh, 35px);
   font-weight: bold;
   white-space: nowrap;
   color: #fff;
@@ -260,6 +291,7 @@ body[data-phase="waiting"] .tile-meter {
 }
 
 .tile.burst .balloon-body,
+.tile.burst .balloon-shade,
 .tile.burst .balloon-shine {
   display: none;
 }
@@ -301,7 +333,7 @@ body[data-phase="waiting"] .tile-meter {
   position: absolute;
   top: 35%;
   left: 50%;
-  font-size: 48px;
+  font-size: clamp(36px, 6.5vh, 77px);
   font-weight: bold;
   color: var(--text);
   white-space: nowrap;
@@ -376,14 +408,14 @@ body.disconnected .waiting-info {
 
 .conn-lost-title {
   margin: 0 0 8px;
-  font-size: 36px;
+  font-size: clamp(27px, 4.9vh, 58px);
   font-weight: bold;
   color: var(--ng);
 }
 
 .conn-lost-sub {
   margin: 0;
-  font-size: 22px;
+  font-size: clamp(16px, 3.0vh, 35px);
   color: var(--muted);
 }
 
@@ -411,7 +443,7 @@ body.disconnected .waiting-info {
 
 .ranking-title {
   margin: 0 0 24px;
-  font-size: 56px;
+  font-size: clamp(42px, 7.6vh, 90px);
   color: var(--warn);
 }
 
@@ -427,7 +459,7 @@ body.disconnected .waiting-info {
   align-items: center;
   gap: 24px;
   padding: 10px 32px;
-  font-size: 40px;
+  font-size: clamp(30px, 5.4vh, 64px);
   font-weight: bold;
   border-bottom: 1px solid var(--line);
   /* 1行ずつ下から出てくる（遅らせる時間は app.js で行ごとに設定） */
@@ -445,17 +477,17 @@ body.disconnected .waiting-info {
   }
 }
 
-/* 1位だけ文字が大きいので、名前の位置がそろうよう順位の欄の幅は px で固定する */
+/* 1位だけ文字が大きいので、名前の位置がそろうよう順位の欄の幅は文字の大きさ（em）ではなく画面の高さで決める */
 .ranking-rank {
   flex: none;
-  width: 150px;
+  width: clamp(110px, 20vh, 240px);
   font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 
 /* 1〜3位は金・銀・銅。1位は大きく */
 .ranking-row[data-rank="1"] {
-  font-size: 56px;
+  font-size: clamp(42px, 7.6vh, 90px);
 }
 
 .ranking-row[data-rank="1"] .ranking-rank { color: #ffd34d; }
@@ -478,7 +510,7 @@ body.disconnected .waiting-info {
 }
 
 .ranking-none {
-  font-size: 32px;
+  font-size: clamp(24px, 4.3vh, 51px);
   color: var(--muted);
 }
 
