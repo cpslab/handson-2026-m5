@@ -107,7 +107,7 @@
         "type": "comment",
         "z": "a1b2c3d4e5f60001",
         "name": "② 子機のデータを受け取る",
-        "info": "子機は `handson/balloon/<id>` に `{\"id\":\"ikai\",\"p\":3.2}`（＋必要なら `\"color\"`）を 1秒に10〜20回送ります。\n\n- **子機（MQTT）** は、子機の MQTT ができるまで **無効** にしています。使うときは有効にして、ブローカーの場所を設定してください。\n- **モック** は子機の代わりのダミーデータです。実機をつなぐときは **モック 0.05秒ごと** を無効にします。",
+        "info": "子機は `handson/balloon/<id>` に `{\"id\":\"ikai\",\"p\":3.2}`（＋必要なら `\"color\"`）を 1秒に10〜20回送ります。\n\n- **MQTT ブローカー（aedes）** は、この Node-RED の中で動くブローカーです（ポート 1883）。子機の `secrets.h` の `MQTT_HOST` には、この PC の IP アドレスを書きます。\n- **子機（MQTT）** は、そのブローカーから子機のデータを受け取ります。\n- **モック** は子機の代わりのダミーデータです（**無効** にしています）。子機がないときに画面を確かめるなら、**モック 0.05秒ごと** を有効にします（実機と同時に使うとマスが混ざります）。",
         "x": 180,
         "y": 180,
         "wires": []
@@ -125,13 +125,37 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "d": true,
         "x": 150,
         "y": 220,
         "wires": [
             [
                 "a1b2c3d4e5f60013"
             ]
+        ]
+    },
+    {
+        "id": "a1b2c3d4e5f60028",
+        "type": "aedes broker",
+        "z": "a1b2c3d4e5f60001",
+        "name": "MQTT ブローカー（aedes）",
+        "mqtt_port": 1883,
+        "mqtt_ws_bind": "port",
+        "mqtt_ws_port": "",
+        "mqtt_ws_path": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "persistence_bind": "memory",
+        "dburl": "",
+        "usetls": false,
+        "x": 460,
+        "y": 180,
+        "wires": [
+            [],
+            []
         ]
     },
     {
@@ -151,6 +175,7 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
+        "d": true,
         "x": 160,
         "y": 260,
         "wires": [
@@ -164,7 +189,7 @@
         "type": "function",
         "z": "a1b2c3d4e5f60001",
         "name": "モック子機（ダミーデータ）",
-        "func": "// 子機の代わりにダミーのデータをつくる（子機の MQTT ができるまでの仮）。\n// 本物の子機と同じく、1人ずつ {\"id\":\"ikai\",\"p\":3.2} を 1秒に10〜20回送る。\n// 実機をつなぐときは、左の「モック 0.05秒ごと」を無効にする。\n\n// ダミーの子機（10人未満の確認も兼ねて7人。color を送らない子機は Node-RED が色を割り当てる）\nconst DUMMY = [\n    { id: \"ikai\", color: \"#ff6699\" },\n    { id: \"tanaka\", color: \"#33aaff\" },\n    { id: \"suzuki\" },\n    { id: \"sato\" },\n    { id: \"takahashi\", color: \"#cc77ff\" },\n    { id: \"ito\" },\n    { id: \"watanabe\" },\n];\n\n// 子機ごとの内部状態（送信回数・吹く強さはばらつかせる）\nlet kids = context.get(\"kids\");\nif (!kids) {\n    kids = DUMMY.map(function (d) {\n        return {\n            id: d.id,\n            color: d.color,\n            rate: 10 + Math.random() * 10,     // 1秒あたりの送信回数\n            strength: 2 + Math.random() * 6,   // 吹いたときの圧力 [kPa]\n            blowing: false,\n            nextAt: 0,\n        };\n    });\n    context.set(\"kids\", kids);\n}\n\nconst now = Date.now();\nconst msgs = [];\n\nkids.forEach(function (kid, i) {\n    // 最後の1人は 30秒ごとに3秒間だけ送信を止める（通信切れの表示の確認用）\n    if (i === kids.length - 1 && (now / 1000) % 30 > 27) return;\n\n    // 送信の時刻になっていなければ送らない\n    if (now < kid.nextAt) return;\n    kid.nextAt = now + 1000 / kid.rate;\n\n    // ときどき吹く・休むを切り替える\n    if (Math.random() < 0.05) kid.blowing = !kid.blowing;\n    const noise = (Math.random() - 0.5) * 0.6;\n    const p = (kid.blowing ? kid.strength : 0) + noise;\n\n    const payload = { id: kid.id, p: Math.round(p * 10) / 10 };\n    if (kid.color) payload.color = kid.color;\n    msgs.push({ topic: \"handson/balloon/\" + kid.id, payload: payload });\n});\n\n// 1つの出力から複数のメッセージを順に送る\nreturn [msgs];",
+        "func": "// 子機の代わりにダミーのデータをつくる（子機がないときに画面を確かめる用）。\n// 本物の子機と同じく、1人ずつ {\"id\":\"ikai\",\"p\":3.2} を 1秒に10〜20回送る。\n// 使うときは、左の「モック 0.05秒ごと」を有効にする（実機をつなぐときは無効に戻す）。\n\n// ダミーの子機（10人未満の確認も兼ねて7人。color を送らない子機は Node-RED が色を割り当てる）\nconst DUMMY = [\n    { id: \"ikai\", color: \"#ff6699\" },\n    { id: \"tanaka\", color: \"#33aaff\" },\n    { id: \"suzuki\" },\n    { id: \"sato\" },\n    { id: \"takahashi\", color: \"#cc77ff\" },\n    { id: \"ito\" },\n    { id: \"watanabe\" },\n];\n\n// 子機ごとの内部状態（送信回数・吹く強さはばらつかせる）\nlet kids = context.get(\"kids\");\nif (!kids) {\n    kids = DUMMY.map(function (d) {\n        return {\n            id: d.id,\n            color: d.color,\n            rate: 10 + Math.random() * 10,     // 1秒あたりの送信回数\n            strength: 2 + Math.random() * 6,   // 吹いたときの圧力 [kPa]\n            blowing: false,\n            nextAt: 0,\n        };\n    });\n    context.set(\"kids\", kids);\n}\n\nconst now = Date.now();\nconst msgs = [];\n\nkids.forEach(function (kid, i) {\n    // 最後の1人は 30秒ごとに3秒間だけ送信を止める（通信切れの表示の確認用）\n    if (i === kids.length - 1 && (now / 1000) % 30 > 27) return;\n\n    // 送信の時刻になっていなければ送らない\n    if (now < kid.nextAt) return;\n    kid.nextAt = now + 1000 / kid.rate;\n\n    // ときどき吹く・休むを切り替える\n    if (Math.random() < 0.05) kid.blowing = !kid.blowing;\n    const noise = (Math.random() - 0.5) * 0.6;\n    const p = (kid.blowing ? kid.strength : 0) + noise;\n\n    const payload = { id: kid.id, p: Math.round(p * 10) / 10 };\n    if (kid.color) payload.color = kid.color;\n    msgs.push({ topic: \"handson/balloon/\" + kid.id, payload: payload });\n});\n\n// 1つの出力から複数のメッセージを順に送る\nreturn [msgs];",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
