@@ -14,7 +14,7 @@ distribution/
 │   ├── README.md             ← 3年生向けの説明（配布用リポジトリのトップに出る）
 │   ├── .gitignore            ← .pio/ と secrets.h を除外
 │   └── .vscode/extensions.json ← PlatformIO の拡張機能をおすすめする
-├── step1-hello/src/main.cpp  ← パート1: シリアルに Hello
+├── step1-hello/src/main.cpp  ← パート1: シリアルモニタと画面に Hello
 └── step2-sensor/src/main.cpp ← パート2: 圧力を読んで画面に出す
 ```
 
