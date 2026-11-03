@@ -1,6 +1,6 @@
 // ダミーデータ（Node-RED の代わり）
 // 役割: README の「メッセージ形式」どおりの state を 1秒に20回つくって流し、
-//       start / reset の操作にも Node-RED と同じように反応する。
+//       start / reset / remove の操作にも Node-RED と同じように反応する。
 //       Node-RED や実機がなくても表示画面を開発できるようにするためのもの。
 
 (function () {
@@ -58,6 +58,10 @@
         });
         nextRank = 1;
         setPhase("waiting");
+      } else if (msg.type === "remove" && (phase === "waiting" || phase === "finished")) {
+        // 通信切れの参加者だけ消す（ダミーなので、消した人はページを開き直すまで戻らない）
+        const i = players.findIndex(function (pl) { return pl.id === msg.id && !pl.online; });
+        if (i !== -1) players.splice(i, 1);
       }
     }
 
