@@ -5,6 +5,7 @@
 
 - Node-RED から WebSocket で届く `state` をそのまま描画します。
 - スタート・リセットの操作を Node-RED に送ります。
+- 待機中・終了後は、通信切れのマスの右上に **×** を出し、押すとそのマスを消す操作（`remove`）を送ります。
 - メッセージ形式はリポジトリ直下の README「Node-RED ↔ ブラウザのメッセージ形式」を参照してください。
 
 ## ファイル
@@ -14,7 +15,7 @@
 | `index.html` | 画面の骨組み |
 | `style.css` | 見た目（プロジェクター向けに暗い背景・大きめの文字） |
 | `app.js` | WebSocket の接続（自動再接続）、`state` の描画、ボタン操作の送信 |
-| `mock.js` | ダミーデータ。Node-RED の代わりに `state` を流し、`start` / `reset` にも反応する |
+| `mock.js` | ダミーデータ。Node-RED の代わりに `state` を流し、`start` / `reset` / `remove` にも反応する |
 
 ## 動かし方
 

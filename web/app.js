@@ -383,9 +383,17 @@
     const pressure = document.createElement("div");
     pressure.className = "tile-pressure";
 
-    root.append(rank, balloonArea, name, meter, pressure);
+    // 通信切れのマスを消す × ボタン（出すのは待機中・終了後の通信切れのマスだけ。style.css で切り替える）
+    // 名前や色を変えて書き込み直した人の、古いマスを片付けるためのもの
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "tile-remove";
+    removeBtn.textContent = "×";
+    removeBtn.title = "このマスを消す";
 
-    return {
+    root.append(rank, removeBtn, balloonArea, name, meter, pressure);
+
+    const tile = {
       root: root,
       rank: rank,
       balloon: balloonArea.querySelector(".balloon"),
@@ -394,7 +402,17 @@
       name: name,
       meterFill: meterFill,
       pressure: pressure,
+      playerId: null, // 今このマスに描いている参加者の ID（マスは使い回すので、押したときに見る）
     };
+
+    removeBtn.addEventListener("click", function () {
+      const id = tile.playerId;
+      if (id == null) return;
+      if (!confirm("「" + id + "」のマスを消しますか？\n（子機からまたデータが届けば、いちばん後ろに出てきます）")) return;
+      connection.send({ type: "remove", id: id });
+    });
+
+    return tile;
   }
 
   // マス1つ分を player の内容で書き換える（ID は子機から届く文字列なので textContent で入れる）
@@ -402,6 +420,7 @@
     const level = Math.max(0, Math.min(1, player.level || 0));
     const scale = MIN_SCALE + (1 - MIN_SCALE) * level;
 
+    tile.playerId = player.id;
     tile.root.classList.toggle("offline", !player.online);
     updateBurst(tile, !!player.burst);
     tile.root.style.setProperty("--balloon-color", player.color || "#888");

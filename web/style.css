@@ -278,6 +278,40 @@ body[data-phase="waiting"] .tile-meter {
   animation: offline-blink 1.6s ease-in-out infinite;
 }
 
+/* 通信切れのマスを消す × ボタン
+   待機中・終了後の、通信切れのマスだけに出す（ゲーム中は順位の判定が変わるので出さない） */
+.tile-remove {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: #fff;
+  background: var(--ng);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.tile-remove:hover {
+  filter: brightness(1.15);
+}
+
+body[data-phase="waiting"] .tile.offline .tile-remove,
+body[data-phase="finished"] .tile.offline .tile-remove {
+  display: block;
+}
+
+/* Node-RED との接続が切れている間は押しても届かないので出さない */
+body.disconnected .tile.offline .tile-remove {
+  display: none;
+}
+
 @keyframes offline-blink {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.45; }
