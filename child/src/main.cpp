@@ -57,6 +57,9 @@ void connectMqtt() {
   if (millis() - lastTryMs < 2000) return;
   lastTryMs = millis();
 
+  // 切れた理由をシリアルに出す（-4: 応答がなく時間切れ / -3: 接続が切れた / -2: つなげなかった / -1: まだつないでいない）
+  Serial.printf("MQTT につなぎ直します（理由 %d）\n", mqtt.state());
+
   // 接続の名前は本体ごとにちがう値（MAC アドレス）にする
   // （名前がほかの人とかぶっても、おたがいの接続が切れないように）
   String clientId = "m5-" + WiFi.macAddress();
@@ -99,6 +102,8 @@ void setup() {
   // Wi-Fi につなぐ（つながるまで待つ）
   M5.Display.drawString("Wi-Fi 接続中...", cx, 90);
   M5.Display.drawString(WIFI_SSID, cx, 140);
+  // Wi-Fi の省電力を切る（省電力だと通信がときどき止まり、MQTT の接続が切れやすい）
+  WiFi.setSleep(false);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(200);
