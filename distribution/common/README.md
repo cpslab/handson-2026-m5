@@ -9,7 +9,7 @@
 
 | ブランチ | 中身 | パート |
 |---|---|---|
-| `step1-hello` | シリアルモニタに「Hello」を出す | 1. PlatformIO の使い方 |
+| `step1-hello` | シリアルモニタと画面に「Hello」を出す | 1. PlatformIO の使い方 |
 | `step2-sensor` | 圧力を読んで、画面に数値とバーで出す | 2. センサーを読む |
 | `step3-mqtt` | Wi-Fi・MQTT で圧力を送る（完成版） | 3. 通信 |
 
