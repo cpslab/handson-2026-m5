@@ -25,7 +25,7 @@
 
 ## コードの配り方（git で配る）
 
-子機のコードは **配布用のリポジトリを git clone** して配る。別の回で扱う git の復習も兼ねる。ただし git は深入りせず、使うコマンドは `clone`・`switch`・`add`・`commit`・`push` の5つだけにする。
+子機のコードは **配布用リポジトリを git clone** して配る。別の回で扱う git の復習も兼ねる。ただし git は深入りせず、使うコマンドは `clone`・`switch` の2つだけにする。**3年生は commit・push をしない。**
 
 ### このリポジトリをそのまま配らない理由
 
@@ -35,14 +35,14 @@
 
 ### 配布用リポジトリの構成
 
-`handson-2026-m5-child`（名前は仮）を別に作り、**直下を PlatformIO のプロジェクト**にする。clone したフォルダを開けば、そのまま PlatformIO のプロジェクトになる。
+[cpslab/handson-2026-m5-child](https://github.com/cpslab/handson-2026-m5-child)（**public**）を別に作り、**直下を PlatformIO のプロジェクト**にする。clone したフォルダを開けば、そのまま PlatformIO のプロジェクトになる。
 
 ```
 handson-2026-m5-child/
 ├── platformio.ini
 ├── src/main.cpp
-├── include/secrets.example.h
-└── .gitignore        ← secrets.h を除外
+├── include/secrets.example.h   ← step3-mqtt だけ
+└── .gitignore                  ← secrets.h を除外
 ```
 
 パートごとのコードは**ブランチ**で分ける（タグだと `switch` で切り替えられないため）。
@@ -54,40 +54,29 @@ handson-2026-m5-child/
 | `step3-mqtt` | Wi-Fi・MQTT で送る（完成版） | 3. 通信 |
 
 - 既定のブランチは `step1-hello` にする（clone した直後がパート1の状態になる）。
-- 開発はこれまでどおりこのリポジトリの `child/` で行い、配布用リポジトリには書き出すだけにする（二重に編集しない）。
+- 開発はこれまでどおりこのリポジトリで行い、配布用リポジトリには `distribution/export.ps1` で書き出すだけにする（二重に編集しない）。手順は [distribution/README.md](../distribution/README.md)。
 - 各ステップのコードは、それだけで動く状態にしておく。
 
 ### 当日の git の操作
 
 | 場面 | 操作 | 補足 |
 |---|---|---|
-| パート1の最初 | `git clone <URL>` → フォルダを VS Code で開く | |
+| パート1の最初 | `git clone https://github.com/cpslab/handson-2026-m5-child.git` → フォルダを VS Code で開く | public なので招待・ログインは要らない |
 | パート2・3の最初 | `git switch step2-sensor` ／ `git switch step3-mqtt` | 遅れた人の追いつきにもそのまま使える |
-| パート3で名前・色を変えたあと | `git switch -c student/<名前>` → `git add` → `git commit` → `git push -u origin student/<名前>` | **push は最後のこの1回だけ** |
 
-- **途中のパートでは commit しない。** 次のパートに切り替えると、自分で変えた内容（Hello の文字・`MAX_KPA` など）は元に戻る。それで問題ないことをスライドで伝える。
-  - 未保存・未コミットの変更が残っていて `switch` できないときは、`git restore .` で変更を取り消してから切り替える（「詰まったら」に入れる）。
-- **自分のブランチは最後に1回だけ切る。** パートごとに切るとマージが必要になり、git に時間を取られるため。
-- **マージはしない。** `student/*` ブランチは push して残すだけで、PR も作らない。
-
-### 全員が同じブランチに push しない理由
-
-全員が同じ行（`MY_NAME`・`MY_COLOR`）を書き換えるので、同じブランチに push すると2人目以降が弾かれ、`pull` するとコンフリクトになる。1人1ブランチにすればぶつからない。
-
-- 見せ方の案: 講師が画面上でわざとコンフリクトを起こして見せ、「だからブランチを分ける」と説明する（3年生にはやらせない）。
+- **commit も push もしない。** 次のパートに切り替えると、自分で変えた内容（Hello の文字・`MAX_KPA` など）は元に戻る。それで問題ないことをスライドで伝える。
+  - 書き換えたままで `switch` できないときは、`git restore .` で変更を取り消してから切り替える（「詰まったら」に入れる）。
+- パート3で書き換えた名前・色は、手元のファイルに残るだけでよい（GitHub には残さない）。
 
 ### `secrets.h` の扱い
 
-- `secrets.h` は `.gitignore` で除外する。「パスワードはコミットしない」の実例として見せる。
+- `secrets.h` は `.gitignore` で除外している。「パスワードはコミットしない」の実例として見せる。
 - 当日は `secrets.example.h` をコピーして `secrets.h` を作り、講師が示す SSID・パスワード・PC の IP を書いてもらう。
 
 ### 講師の準備
 
-- [ ] 配布用リポジトリを作り、`step1-hello`〜`step3-mqtt` のブランチを用意する
-- [ ] 3年生に書き込み権限を付ける（push のため）
-- [ ] `step*` ブランチにブランチ保護をかけ、直接 push できないようにする
-- [ ] 終わったら `student/*` ブランチをまとめて削除する
-
+- [ ] 配布用リポジトリを作り、`step1-hello`〜`step3-mqtt` のブランチを書き出す（[distribution/README.md](../distribution/README.md)）
+- [ ] 子機のコードを直したら、マージしてから `export.ps1 -Push` で配布用リポジトリに反映する
 ## タイムテーブル
 
 全体で約180分。画面表示とボタン・タッチのパートをなくした分は、PlatformIO（最初のつまずきに備える）・センサー・通信（MQTT・Node-RED の説明）に回している。
@@ -140,7 +129,7 @@ handson-2026-m5-child/
 
 - 画面に数値とバーを出す部分は、「ここで画面に出している」と指す程度にとどめる。
 
-### 3. 通信：MQTT・Node-RED（60分・11枚）
+### 3. 通信：MQTT・Node-RED（60分・10枚）
 
 | # | スライド | 内容 |
 |---|---|---|
@@ -154,7 +143,6 @@ handson-2026-m5-child/
 | 3-8 | 子機のコード（通信部分） | Wi-Fi 接続・MQTT 接続・送信をブロックごとに説明。`secrets.h` に接続先を分けている理由 |
 | 3-9 | やってみよう | 名前と風船の色を書き換えて書き込む |
 | 3-10 | できたらこうなる | 待機画面に自分のマスが出る。出ないときは「詰まったら」へ |
-| 3-11 | 自分の設定を GitHub に残す | `git switch -c student/<名前>` → `add` → `commit` → `push`。同じブランチに push しない理由（講師がコンフリクトを見せる） |
 
 - 見せ方の案: Node-RED の debug ノードで、全員のメッセージが流れてくる様子を映すと、MQTT のイメージがつかみやすい。
 
@@ -184,7 +172,7 @@ handson-2026-m5-child/
 
 - [ ] 各パートの担当者（パート単位で分けると作りやすい）
 - [x] 区切りごとの完成コードの置き方 → 配布用リポジトリのブランチ（[コードの配り方](#コードの配り方git-で配る)）
-- [ ] 配布用リポジトリの名前と、公開範囲（public か、3年生だけが読めるか）
+- [x] 配布用リポジトリの名前と公開範囲 → `cpslab/handson-2026-m5-child`（public）。3年生は clone・switch だけで push しない
 - [ ] clone を当日やるか、事前準備にしてもらうか（当日やるとパート1の 25分がきつくなる）
 - [ ] git の回で教えるコマンドとの合わせ方（`switch` か `checkout` か など）
 - [ ] 子機の通信部分（3-8・3-9）は、子機の MQTT ができてから作る

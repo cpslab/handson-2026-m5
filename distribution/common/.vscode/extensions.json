@@ -1,0 +1,10 @@
+{
+    // このフォルダを開いたときに、PlatformIO の拡張機能をおすすめする
+    "recommendations": [
+        "platformio.platformio-ide"
+    ],
+    "unwantedRecommendations": [
+        "ms-vscode.cpptools-extension-pack",
+        "pioarduino.pioarduino-ide"
+    ]
+}

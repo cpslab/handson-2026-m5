@@ -229,6 +229,7 @@
 ```
 handson-2026-m5/
 ├── child/      # 子機（PlatformIO プロジェクト・3年生に配布）
+├── distribution/ # 配布用リポジトリ（handson-2026-m5-child）に書き出すパートごとのコード
 ├── node-red/   # flows.json（Node-RED の担当は1人に決める）
 ├── web/        # ブラウザ表示（HTML/JS）
 ├── slides/     # ハンズオンのスライド
