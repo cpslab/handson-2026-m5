@@ -82,7 +82,7 @@ void loop() {
   M5.Display.fillRect(barX, 160, barW, 50, TFT_GREEN);
   M5.Display.fillRect(barX + barW, 160, barMax - barW, 50, TFT_DARKGREY);
 
-  // シリアルにも出す（シリアルプロッタでグラフにできる）
+  // シリアルモニタにも出す（吹いたときの数字の変わり方を見られる）
   Serial.println(p);
 
   delay(50);
