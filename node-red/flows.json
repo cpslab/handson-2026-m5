@@ -10,54 +10,11 @@
         "id": "a1b2c3d4e5f60004",
         "type": "comment",
         "z": "a1b2c3d4e5f60001",
-        "name": "① ゲームの設定（当日ここを変える）",
-        "info": "下の **ゲーム設定**（inject）をダブルクリックして JSON を書き換え、デプロイすると反映されます。\n\n| キー | 内容 |\n|---|---|\n| `deadzone` | 不感帯 [kPa]。これ以下の圧力は 0 とみなす |\n| `threshold` | しきい値 [kPa·秒]。膨らみがこれを超えたら破裂 |\n| `timeLimit` | 制限時間 [秒] |\n| `maxRank` | 何位まで決まったら終了するか |\n| `countdownFrom` | カウントダウンの開始値（3 → 3・2・1） |\n| `offlineMs` | この時間 [ミリ秒] データが来なければ通信切れとする |\n| `maxPlayers` | 参加できる最大人数（画面のマスの数） |\n\n値は仮です。実機検証のあとで決めます。\n\n**参加者の一覧を消す** は、子機の名前を変えた人がいて古いマスが残ったときなどに押します。",
+        "name": "① 参加者の一覧を消す",
+        "info": "**参加者の一覧を消す** のボタンを押すと、参加者を全員消して待機に戻します。\n\n- 通信切れの人を1人ずつ消すときは、表示画面のマスの右上の × を使います（待機中・終了後）。\n- ゲームの設定（しきい値・制限時間・人数など）は、③ の **段階を進めて state をつくる** の「開始時」タブにあります。当日は基本的に変えません。",
         "x": 200,
         "y": 40,
         "wires": []
-    },
-    {
-        "id": "a1b2c3d4e5f60005",
-        "type": "inject",
-        "z": "a1b2c3d4e5f60001",
-        "name": "ゲーム設定",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "{\n  \"deadzone\": 0.5,\n  \"threshold\": 30,\n  \"timeLimit\": 60,\n  \"maxRank\": 5,\n  \"countdownFrom\": 3,\n  \"offlineMs\": 2000,\n  \"maxPlayers\": 10\n}",
-        "payloadType": "json",
-        "x": 150,
-        "y": 80,
-        "wires": [
-            [
-                "a1b2c3d4e5f60006"
-            ]
-        ]
-    },
-    {
-        "id": "a1b2c3d4e5f60006",
-        "type": "function",
-        "z": "a1b2c3d4e5f60001",
-        "name": "設定を反映",
-        "func": "// 左の「ゲーム設定」の値を flow.config に入れる。\n// 「ゲーム設定」を書き換えてデプロイすると、そのたびにここが動いて新しい値になる。\nflow.set(\"config\", msg.payload);\n\n// ゲームの状態がまだなければ（Node-RED の起動直後）、空の状態をつくる\nif (!flow.get(\"game\")) {\n    flow.set(\"game\", {\n        phase: \"waiting\",          // waiting / countdown / playing / finished\n        phaseStartedAt: Date.now(), // 今の段階になった時刻 [ミリ秒]\n        nextRank: 1,               // 次に割れた人の順位\n        players: [],               // 参加者（配列の順番 = 画面のマスの位置）\n    });\n}\n\nnode.status({ fill: \"green\", shape: \"dot\", text: \"しきい値 \" + msg.payload.threshold + \" / 不感帯 \" + msg.payload.deadzone });\nreturn null;",
-        "outputs": 0,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 380,
-        "y": 80,
-        "wires": [
-            []
-        ]
     },
     {
         "id": "a1b2c3d4e5f60007",
@@ -77,7 +34,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 180,
-        "y": 120,
+        "y": 80,
         "wires": [
             [
                 "a1b2c3d4e5f60008"
@@ -97,7 +54,7 @@
         "finalize": "",
         "libs": [],
         "x": 430,
-        "y": 120,
+        "y": 80,
         "wires": [
             []
         ]
@@ -107,9 +64,9 @@
         "type": "comment",
         "z": "a1b2c3d4e5f60001",
         "name": "② 子機のデータを受け取る",
-        "info": "子機は `handson/balloon/<id>` に `{\"id\":\"ikai\",\"p\":3.2}`（＋必要なら `\"color\"`）を 1秒に10〜20回送ります。\n\n- **MQTT ブローカー（aedes）** は、この Node-RED の中で動くブローカーです（ポート 1883）。子機の `secrets.h` の `MQTT_HOST` には、この PC の IP アドレスを書きます。\n- **子機（MQTT）** は、そのブローカーから子機のデータを受け取ります。\n- **モック** は子機の代わりのダミーデータです（**無効** にしています）。子機がないときに画面を確かめるなら、**モック 0.05秒ごと** を有効にします（実機と同時に使うとマスが混ざります）。",
+        "info": "子機は `handson/balloon/<id>` に `{\"id\":\"ikai\",\"p\":3.2}`（＋必要なら `\"color\"`）を 1秒に10〜20回送ります。\n\n- **MQTT ブローカー（aedes）** は、この Node-RED の中で動くブローカーです（ポート 1883）。子機の `secrets.h` の `MQTT_HOST` には、この PC の IP アドレスを書きます。\n- **子機（MQTT）** は、そのブローカーから子機のデータを受け取ります。",
         "x": 180,
-        "y": 180,
+        "y": 140,
         "wires": []
     },
     {
@@ -126,7 +83,7 @@
         "rh": 0,
         "inputs": 0,
         "x": 150,
-        "y": 220,
+        "y": 180,
         "wires": [
             [
                 "a1b2c3d4e5f60013"
@@ -152,56 +109,10 @@
         "dburl": "",
         "usetls": false,
         "x": 460,
-        "y": 180,
+        "y": 140,
         "wires": [
             [],
             []
-        ]
-    },
-    {
-        "id": "a1b2c3d4e5f60011",
-        "type": "inject",
-        "z": "a1b2c3d4e5f60001",
-        "name": "モック 0.05秒ごと",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "0.05",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "d": true,
-        "x": 160,
-        "y": 260,
-        "wires": [
-            [
-                "a1b2c3d4e5f60012"
-            ]
-        ]
-    },
-    {
-        "id": "a1b2c3d4e5f60012",
-        "type": "function",
-        "z": "a1b2c3d4e5f60001",
-        "name": "モック子機（ダミーデータ）",
-        "func": "// 子機の代わりにダミーのデータをつくる（子機がないときに画面を確かめる用）。\n// 本物の子機と同じく、1人ずつ {\"id\":\"ikai\",\"p\":3.2} を 1秒に10〜20回送る。\n// 使うときは、左の「モック 0.05秒ごと」を有効にする（実機をつなぐときは無効に戻す）。\n\n// ダミーの子機（10人未満の確認も兼ねて7人。color を送らない子機は Node-RED が色を割り当てる）\nconst DUMMY = [\n    { id: \"ikai\", color: \"#ff6699\" },\n    { id: \"tanaka\", color: \"#33aaff\" },\n    { id: \"suzuki\" },\n    { id: \"sato\" },\n    { id: \"takahashi\", color: \"#cc77ff\" },\n    { id: \"ito\" },\n    { id: \"watanabe\" },\n];\n\n// 子機ごとの内部状態（送信回数・吹く強さはばらつかせる）\nlet kids = context.get(\"kids\");\nif (!kids) {\n    kids = DUMMY.map(function (d) {\n        return {\n            id: d.id,\n            color: d.color,\n            rate: 10 + Math.random() * 10,     // 1秒あたりの送信回数\n            strength: 2 + Math.random() * 6,   // 吹いたときの圧力 [kPa]\n            blowing: false,\n            nextAt: 0,\n        };\n    });\n    context.set(\"kids\", kids);\n}\n\nconst now = Date.now();\nconst msgs = [];\n\nkids.forEach(function (kid, i) {\n    // 最後の1人は 30秒ごとに3秒間だけ送信を止める（通信切れの表示の確認用）\n    if (i === kids.length - 1 && (now / 1000) % 30 > 27) return;\n\n    // 送信の時刻になっていなければ送らない\n    if (now < kid.nextAt) return;\n    kid.nextAt = now + 1000 / kid.rate;\n\n    // ときどき吹く・休むを切り替える\n    if (Math.random() < 0.05) kid.blowing = !kid.blowing;\n    const noise = (Math.random() - 0.5) * 0.6;\n    const p = (kid.blowing ? kid.strength : 0) + noise;\n\n    const payload = { id: kid.id, p: Math.round(p * 10) / 10 };\n    if (kid.color) payload.color = kid.color;\n    msgs.push({ topic: \"handson/balloon/\" + kid.id, payload: payload });\n});\n\n// 1つの出力から複数のメッセージを順に送る\nreturn [msgs];",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 390,
-        "y": 260,
-        "wires": [
-            [
-                "a1b2c3d4e5f60013"
-            ]
         ]
     },
     {
@@ -217,7 +128,7 @@
         "finalize": "",
         "libs": [],
         "x": 680,
-        "y": 220,
+        "y": 180,
         "wires": [
             []
         ]
@@ -227,9 +138,9 @@
         "type": "comment",
         "z": "a1b2c3d4e5f60001",
         "name": "③ ゲームの進行・ブラウザとのやりとり",
-        "info": "- **段階を進めて state をつくる**: カウントダウン → 計測 → 終了 の切り替えと、ブラウザへの state の送信（1秒に20回）。\n- **操作の受付**: ブラウザのスタート・リセットボタン。\n\nWebSocket のパスは `/ws/balloon` です。",
+        "info": "- **段階を進めて state をつくる**: カウントダウン → 計測 → 終了 の切り替えと、ブラウザへの state の送信（1秒に20回）。「開始時」タブに **ゲームの設定** がある。\n- **操作の受付**: ブラウザのスタート・リセットボタン。\n\nWebSocket のパスは `/ws/balloon` です。",
         "x": 210,
-        "y": 320,
+        "y": 240,
         "wires": []
     },
     {
@@ -250,7 +161,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 140,
-        "y": 360,
+        "y": 280,
         "wires": [
             [
                 "a1b2c3d4e5f60016"
@@ -266,11 +177,11 @@
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
-        "initialize": "",
+        "initialize": "// ===== ゲームの設定（デプロイ・起動のときに1回だけ動く） =====\n// 実機で遊んで、ゲームとして成り立つ値にしてある。当日は基本的に変えない。\n// 変えるときは、ここの数字を書き換えてデプロイする（参加者の一覧はそのまま残る）。\nflow.set(\"config\", {\n    deadzone: 0.5,      // 不感帯 [kPa]。これ以下の圧力は 0 とみなす\n    threshold: 30,      // しきい値 [kPa·秒]。膨らみがこれを超えたら破裂\n    timeLimit: 60,      // 制限時間 [秒]\n    maxRank: 5,         // 何位まで決まったら終了するか\n    countdownFrom: 3,   // カウントダウンの開始値（3 → 3・2・1）\n    offlineMs: 2000,    // この時間 [ミリ秒] データが来なければ通信切れとする\n    maxPlayers: 12,     // 参加できる最大人数（3年生10人＋講師2人。表示画面のマスの数と同じ）\n});\n\n// ゲームの状態がまだなければ（Node-RED の起動直後）、空の状態をつくる\nif (!flow.get(\"game\")) {\n    flow.set(\"game\", {\n        phase: \"waiting\",           // waiting / countdown / playing / finished\n        phaseStartedAt: Date.now(), // 今の段階になった時刻 [ミリ秒]\n        nextRank: 1,                // 次に割れた人の順位\n        players: [],                // 参加者（配列の順番 = 画面のマスの位置）\n    });\n}",
         "finalize": "",
         "libs": [],
         "x": 380,
-        "y": 360,
+        "y": 280,
         "wires": [
             [
                 "a1b2c3d4e5f60017"
@@ -285,7 +196,7 @@
         "server": "a1b2c3d4e5f60002",
         "client": "",
         "x": 630,
-        "y": 360,
+        "y": 280,
         "wires": []
     },
     {
@@ -296,7 +207,7 @@
         "server": "a1b2c3d4e5f60002",
         "client": "",
         "x": 140,
-        "y": 420,
+        "y": 340,
         "wires": [
             [
                 "a1b2c3d4e5f60019"
@@ -312,7 +223,7 @@
         "action": "obj",
         "pretty": false,
         "x": 300,
-        "y": 420,
+        "y": 340,
         "wires": [
             [
                 "a1b2c3d4e5f60020"
@@ -332,7 +243,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 420,
+        "y": 340,
         "wires": [
             []
         ]
@@ -344,7 +255,7 @@
         "name": "④ 表示画面（web/）の配信",
         "info": "`http://<このPC>:1880/balloon/` で表示画面を開けます（末尾の `/` なしで開いても転送します）。\n\nリポジトリの `web/` フォルダの場所を、Node-RED を起動するときの環境変数 `BALLOON_WEB_DIR` で指定してください（node-red/README.md を参照）。",
         "x": 190,
-        "y": 480,
+        "y": 400,
         "wires": []
     },
     {
@@ -357,7 +268,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 160,
-        "y": 520,
+        "y": 440,
         "wires": [
             [
                 "a1b2c3d4e5f60023"
@@ -377,7 +288,7 @@
         "finalize": "",
         "libs": [],
         "x": 400,
-        "y": 520,
+        "y": 440,
         "wires": [
             [
                 "a1b2c3d4e5f60024"
@@ -404,7 +315,7 @@
         "encoding": "none",
         "allProps": false,
         "x": 640,
-        "y": 520,
+        "y": 440,
         "wires": [
             [
                 "a1b2c3d4e5f60025"
@@ -419,7 +330,7 @@
         "statusCode": "",
         "headers": {},
         "x": 870,
-        "y": 560,
+        "y": 480,
         "wires": []
     },
     {
@@ -432,7 +343,7 @@
         ],
         "uncaught": false,
         "x": 380,
-        "y": 600,
+        "y": 520,
         "wires": [
             [
                 "a1b2c3d4e5f60027"
@@ -452,7 +363,7 @@
         "finalize": "",
         "libs": [],
         "x": 620,
-        "y": 600,
+        "y": 520,
         "wires": [
             [
                 "a1b2c3d4e5f60025"

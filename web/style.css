@@ -110,10 +110,10 @@ body {
   color: var(--text);
 }
 
-/* 5列 × 2段。人数が少なくてもマスの大きさは変えない（接続するたびに風船の大きさが変わらないように） */
+/* 6列 × 2段（12人分：3年生10人＋講師2人）。人数が少なくてもマスの大きさは変えない（接続するたびに風船の大きさが変わらないように） */
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(2, 1fr);
   gap: 16px;
   flex: 1;

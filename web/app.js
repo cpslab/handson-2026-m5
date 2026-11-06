@@ -279,7 +279,7 @@
   // ===== 風船のマス =====
   // state は1秒に20回届くので、マスは毎回つくり直さず、つくったものを使い回して中身だけ書き換える。
   // players の配列の順番 = マスの位置（Node-RED が接続順で固定する）。
-  const MAX_TILES = 10;
+  const MAX_TILES = 12;
   const tiles = [];
 
   // 風船の大きさ: level 0 → MIN_SCALE 倍、level 1 → 1 倍
