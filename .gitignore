@@ -15,6 +15,9 @@ flows_cred.json
 .flows.json.backup
 .flows_cred.json.backup
 
+# Node-RED で保存した子機のデータ（研究の例：CSV に保存）
+logs/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,0 +1,85 @@
+[
+    {
+        "id": "b1b2c3d4e5f61001",
+        "type": "tab",
+        "label": "① 自分のデータを見る",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "b1b2c3d4e5f61002",
+        "type": "comment",
+        "z": "b1b2c3d4e5f61001",
+        "name": "① 自分のデータを見る",
+        "info": "自分の CoreS3 が送ったデータを、右の debug タブに出します。\n\n`mqtt in` のトピックの **「自分の名前」を、子機の `MY_NAME` と同じ名前** に書き換えてください。\n\n読み込んだあと、`mqtt in` ノードを開き、サーバーの鉛筆マークから **ホストを講師の PC の IP** に書き換えてデプロイします。",
+        "x": 200,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "b1b2c3d4e5f61003",
+        "type": "mqtt in",
+        "z": "b1b2c3d4e5f61001",
+        "name": "",
+        "topic": "handson/balloon/自分の名前",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "b1b2c3d4e5f61009",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 100,
+        "wires": [
+            [
+                "b1b2c3d4e5f61004"
+            ]
+        ]
+    },
+    {
+        "id": "b1b2c3d4e5f61004",
+        "type": "debug",
+        "z": "b1b2c3d4e5f61001",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 430,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "b1b2c3d4e5f61009",
+        "type": "mqtt-broker",
+        "name": "講師の PC のブローカー",
+        "broker": "192.168.0.100",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]

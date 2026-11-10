@@ -371,6 +371,155 @@
         ]
     },
     {
+        "id": "a1b2c3d4e5f60030",
+        "type": "tab",
+        "label": "研究の例：CSV に保存",
+        "disabled": false,
+        "info": "子機のデータを CSV に保存する例です（ハンズオンでは講師が画面で見せるだけ）。ゲームのフローとは独立しています。"
+    },
+    {
+        "id": "a1b2c3d4e5f60031",
+        "type": "comment",
+        "z": "a1b2c3d4e5f60030",
+        "name": "子機のデータを CSV に保存する（実演用）",
+        "info": "「記録を始める」のボタンを押してから「記録を止める」を押すまでの子機のデータを、1つの CSV ファイルに保存します。\n\n- ファイルは **Node-RED を起動したフォルダの `logs/`** にできます（リポジトリ直下で起動していれば `handson-2026-m5/logs/`）。`logs/` はコミットしません。\n- 列は `t`（記録を始めてからの秒数）, `id`（名前）, `p`（圧力 kPa）です。\n- Excel で開き、`id` で自分の名前だけに絞って `t` と `p` を散布図（直線）にすると、吹いたときの山が見えます。\n- やっていることは、ハンズオンの ①②（`mqtt in` → `debug`）の `debug` を「1行の CSV にする」→「ファイルに書く」に替えただけです。",
+        "x": 230,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "a1b2c3d4e5f60032",
+        "type": "inject",
+        "z": "a1b2c3d4e5f60030",
+        "name": "記録を始める",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "a1b2c3d4e5f60033"
+            ]
+        ]
+    },
+    {
+        "id": "a1b2c3d4e5f60033",
+        "type": "function",
+        "z": "a1b2c3d4e5f60030",
+        "name": "ファイル名を決めて見出しを書く",
+        "func": "// 記録を始める：ファイル名を決めて、1行目（見出し）を書く\n// ファイルは Node-RED を起動したフォルダの logs/ にできる（例: logs/balloon-20261113-101500.csv）\nconst d = new Date();\nconst pad = function (n) { return String(n).padStart(2, \"0\"); };\nconst stamp = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + \"-\" +\n    pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());\nconst file = \"logs/balloon-\" + stamp + \".csv\";\n\nflow.set(\"log\", { file: file, startedAt: Date.now() });\nnode.status({ fill: \"red\", shape: \"dot\", text: \"記録中: \" + file });\n\n// 列は「記録を始めてからの秒数, 名前, 圧力[kPa]」\nmsg.filename = file;\nmsg.payload = \"t,id,p\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 100,
+        "wires": [
+            [
+                "a1b2c3d4e5f60038"
+            ]
+        ]
+    },
+    {
+        "id": "a1b2c3d4e5f60034",
+        "type": "inject",
+        "z": "a1b2c3d4e5f60030",
+        "name": "記録を止める",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 160,
+        "wires": [
+            [
+                "a1b2c3d4e5f60035"
+            ]
+        ]
+    },
+    {
+        "id": "a1b2c3d4e5f60035",
+        "type": "function",
+        "z": "a1b2c3d4e5f60030",
+        "name": "記録を止める",
+        "func": "// 記録を止める（ファイルはそのまま残る）\nconst log = flow.get(\"log\");\nflow.set(\"log\", null);\nnode.status(log ? { fill: \"grey\", shape: \"ring\", text: \"保存しました: \" + log.file } : {});\nreturn null;",
+        "outputs": 0,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "a1b2c3d4e5f60036",
+        "type": "mqtt in",
+        "z": "a1b2c3d4e5f60030",
+        "name": "子機（MQTT）",
+        "topic": "handson/balloon/+",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "a1b2c3d4e5f60003",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 220,
+        "wires": [
+            [
+                "a1b2c3d4e5f60037"
+            ]
+        ]
+    },
+    {
+        "id": "a1b2c3d4e5f60037",
+        "type": "function",
+        "z": "a1b2c3d4e5f60030",
+        "name": "1行の CSV にする",
+        "func": "// 子機のデータ {\"id\":\"ikai\",\"p\":3.2} を、CSV の1行「12.35,ikai,3.20」にする\n// 記録していないときは何もしない\nconst log = flow.get(\"log\");\nif (!log) return null;\n\nconst data = msg.payload || {};\nconst p = Number(data.p);\nif (typeof data.id !== \"string\" || !Number.isFinite(p)) return null;\n\nconst t = (Date.now() - log.startedAt) / 1000;\nmsg.filename = log.file;\nmsg.payload = t.toFixed(2) + \",\" + data.id + \",\" + p.toFixed(2);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 220,
+        "wires": [
+            [
+                "a1b2c3d4e5f60038"
+            ]
+        ]
+    },
+    {
+        "id": "a1b2c3d4e5f60038",
+        "type": "file",
+        "z": "a1b2c3d4e5f60030",
+        "name": "ファイルに書き足す",
+        "filename": "filename",
+        "filenameType": "msg",
+        "appendNewline": true,
+        "createDir": true,
+        "overwriteFile": "false",
+        "encoding": "utf8",
+        "x": 670,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
         "id": "a1b2c3d4e5f60002",
         "type": "websocket-listener",
         "path": "/ws/balloon",
