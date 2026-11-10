@@ -1,0 +1,85 @@
+[
+    {
+        "id": "b1b2c3d4e5f62001",
+        "type": "tab",
+        "label": "② 全員のデータを見る",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "b1b2c3d4e5f62002",
+        "type": "comment",
+        "z": "b1b2c3d4e5f62001",
+        "name": "② 全員のデータを見る",
+        "info": "トピックの最後を `+` にすると、`handson/balloon/` の下に送られた全員分のデータが届きます。子機は1台も書き換えていません。\n\n読み込んだあと、`mqtt in` ノードを開き、サーバーの鉛筆マークから **ホストを講師の PC の IP** に書き換えてデプロイします。",
+        "x": 200,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "b1b2c3d4e5f62003",
+        "type": "mqtt in",
+        "z": "b1b2c3d4e5f62001",
+        "name": "",
+        "topic": "handson/balloon/+",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "b1b2c3d4e5f62009",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 100,
+        "wires": [
+            [
+                "b1b2c3d4e5f62004"
+            ]
+        ]
+    },
+    {
+        "id": "b1b2c3d4e5f62004",
+        "type": "debug",
+        "z": "b1b2c3d4e5f62001",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 430,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "b1b2c3d4e5f62009",
+        "type": "mqtt-broker",
+        "name": "講師の PC のブローカー",
+        "broker": "192.168.0.100",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]
